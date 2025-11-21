@@ -6,6 +6,8 @@ namespace Webauthn\Tests\Unit\AttestationStatement;
 
 use Ergebnis\PHPUnit\SlowTestDetector\Attribute\MaximumDuration;
 use PHPUnit\Framework\Attributes\Test;
+use SpomkyLabs\Pki\CryptoEncoding\PEM;
+use SpomkyLabs\Pki\X509\Certificate\Certificate;
 use Webauthn\AuthenticatorAttestationResponseValidator;
 use Webauthn\PublicKeyCredential;
 use Webauthn\PublicKeyCredentialCreationOptions;
@@ -44,5 +46,31 @@ final class TPMAttestationStatementSupportTest extends AbstractTestCase
 
         //Then
         static::assertSame('08987058-cadc-4b81-b6e1-30de50dcbe96', $source->aaguid->toRfc4122());
+    }
+
+    #[Test]
+    public function extensions(): void
+    {
+        $str = '
+        -----BEGIN CERTIFICATE-----
+MIICNjCCAdygAwIBAgIQMR/ELaCrEMQ6mxvzp1404jAKBggqhkjOPQQDAjBiMR4w
+HAYDVQQDDBVXZWJBdXRobiB0ZXN0IHZlY3RvcnMxDDAKBgNVBAoMA1czQzElMCMG
+A1UECwwcQXV0aGVudGljYXRvciBBdHRlc3RhdGlvbiBDQTELMAkGA1UEBhMCQUEw
+IBcNMjQwMTAxMDAwMDAwWhgPMzAyNDAxMDEwMDAwMDBaMAAwWTATBgcqhkjOPQIB
+BggqhkjOPQMBBwNCAATFTj8QkJT2DXaZt9tdg4Vp/9Hz4cnol82etABj+UAuPpk3
+6TbPH81et0P/RDyXqy7c18jg5s9s/UE7irGf/6dpo4HTMIHQMAwGA1UdEwEB/wQC
+MAAwDgYDVR0PAQH/BAQDAgeAMB0GA1UdDgQWBBRfVGy2lz1JgegPzcdGOFn1h5aA
+5DAfBgNVHSMEGDAWgBRFr/cVsN14Z0H+6ZbrwWVHo5MbHjAQBgNVHSUECTAHBgVn
+gQUIAzBeBgNVHREBAf8EVDBSpFAwTjFMMBQGBWeBBQIBDAtpZDowMDAwMDAwMDAU
+BgVngQUCAwwLaWQ6MDAwMDAwMDAwHgYFZ4EFAgIMFVdlYkF1dGhuIHRlc3QgdmVj
+dG9yczAKBggqhkjOPQQDAgNIADBFAiBjyaJ5e4Bm8ds03WCfGrZpVgfnqY6f+AkK
+aIU8mp/JSQIhAKVYMaOfW4oqqaaIN4Kcq/Q/6ipc6khZroUcrHjmrD6X
+-----END CERTIFICATE-----
+        ';
+        $certificate = Certificate::fromPEM(PEM::fromString(trim($str)));
+        $ext = $certificate->tbsCertificate()
+            ->extensions()
+            ->extendedKeyUsage();
+        static::assertTrue($ext->has('2.23.133.8.3'));
     }
 }
